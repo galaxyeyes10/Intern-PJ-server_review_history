@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Boolean
+from sqlalchemy.sql import func
+from sqlalchemy import Column, String, Integer, ForeignKey, Boolean, TIMESTAMP
 from sqlalchemy.orm import relationship
 from db import Base
 
@@ -14,6 +15,7 @@ class UserTable(Base):
     total_rating = Column(Integer)
     average_rating = Column(Integer)
     reviews = relationship("ReviewTable", back_populates="user")
+    orders = relationship("OrderTable", back_populates="user")
 
 class StoreTable(Base):
     __tablename__ = 'store'
@@ -27,6 +29,7 @@ class StoreTable(Base):
     rating_count = Column(Integer)
     average_rating = Column(Integer)
     reviews = relationship("ReviewTable", back_populates="store")
+    menus = relationship("MenuTable", back_populates="store")
 
 class MenuTable(Base):
     __tablename__ = 'menu'
@@ -40,6 +43,8 @@ class MenuTable(Base):
     description = Column(String)
     price = Column(Integer)
     is_main = Column(Boolean)
+    store = relationship("StoreTable", back_populates="menus")
+    order = relationship("OrderTable", back_populates="menus")
 
 class OrderTable(Base):
     __tablename__ = 'order'
@@ -52,7 +57,9 @@ class OrderTable(Base):
     menu_id = Column(Integer, ForeignKey('public.menu.menu_id'), nullable=False)
     quantity = Column(Integer)
     is_completed = Column(Boolean)
-    order_date = Column(Integer)
+    order_date = order_date = Column(TIMESTAMP, server_default=func.now())
+    user = relationship("UserTable", back_populates="orders")
+    menus = relationship("MenuTable", back_populates="order")
 
 class ReviewTable(Base):
     __tablename__ = 'review'
@@ -66,6 +73,6 @@ class ReviewTable(Base):
     rating = Column(Integer)
     content = Column(String)
     photo_url = Column(String)
-    created_at = Column(Integer)
+    created_at = Column(TIMESTAMP, server_default=func.now())
     user = relationship("UserTable", back_populates="reviews")
     store = relationship("StoreTable", back_populates="reviews")
